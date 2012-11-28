@@ -231,25 +231,21 @@ class GAP:
         return distance
 
     def hux(self, p1, p2):
-        p1_gene_pool = self.number_of_tasks/2
-        p2_gene_pool = self.number_of_tasks/2
         child = []
+        p1_is_next = True
         for gene in range(self.number_of_tasks):
-            random_gene = randrange(2)
-            if random_gene == 0:
-                if p1_gene_pool > 1:
-                    child.append(p1[gene])
-                    p1_gene_pool -= 1
-                else:
-                    child.append(p2[gene])
-                    p2_gene_pool -= 1
+            p1_gene = p1[gene]
+            p2_gene = p2[gene]
+            if p1_gene == p1_gene:
+                child.append(p1_gene)
             else:
-                if p2_gene_pool > 1:
-                    child.append(p2[gene])
-                    p2_gene_pool -= 1
+                if p1_is_next:
+                    child.append(p1_gene)
+                    p1_is_next = False
                 else:
-                    child.append(p1[gene])
-                    p1_gene_pool -= 1
+                    child.append(p2_gene)
+                    p1_is_next = True
+
         return child
 
     def diverge(self, P):
@@ -322,9 +318,9 @@ class GAP:
                 P = self.replace(N, P, C)
         return self.best_fitness
 
-#@print_timing
+@print_timing
 def run_30_times_chc(filename):
-    gap = GAP(filename, 50, 50, 30)
+    gap = GAP(filename, 50, 50, 10)
     total = 0.0
     for i in range(30):
         total += gap.run_chc()
@@ -335,9 +331,9 @@ def run_30_times_chc(filename):
     print "feasable: %s" %gap.feasible(gap.best_solution)
     print "evaluations to best %i" %gap.evaluations_to_best
 
-#@print_timing
+@print_timing
 def run_30_times_ga(filename):
-    gap = GAP(filename, 50, 50, 30)
+    gap = GAP(filename, 50, 50, 10)
     total = 0.0
     for i in range(30):
         total += gap.run_ga()
@@ -352,7 +348,7 @@ def run_30_times_ga(filename):
     #solution = [0,0,2,1,0,2,0,0,1,1,0,2,2,2,1]
     #print gap.fitness(solution)
 
-#@print_timing
+@print_timing
 def run_10_times(filename):
     gap = GAP(filename, 100, 100, 100)
     total = 0.0
@@ -368,7 +364,10 @@ def run_10_times(filename):
 #run_30_times_ga('data/D20-100.dat')       # finding rand 495 iteration , with repair 336
 #run_30_times_chc('data/D20-100.dat')       # finding rand 495 iteration , with repair 336
 
+run_30_times_ga('data/C10-100.dat')       # finding rand never         , with repair 999
 run_30_times_chc('data/C10-100.dat')       # finding rand never         , with repair 999
+
+
 #run_30_times('data/C30-500.dat')       # finding rand never         , with repair 999
 #run_30_times_chc('data/E10-100.dat')       # finding rand 50 iteration  , with repair 67
 #run_30_times_chc('data/E50-1000.dat')      # finding rand never        , with repair 999
