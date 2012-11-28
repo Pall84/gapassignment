@@ -3,6 +3,7 @@ from random import randrange
 import sys
 import time
 from copy import copy
+import thread
 
 def doGen( size=10000 ):
     return list("some unique object %d" % ( i, ) for i in xrange(size))
@@ -18,10 +19,9 @@ def print_timing (func):
     return wrapper
 
 class GAP:
-    def __init__(self, filename, Np, Nc, generations):
+    def __init__(self, filename, Np, generations):
 
         self.Np = Np
-        self.Nc = Nc
         self.generations = generations
 
         self.number_of_agents = 0
@@ -319,17 +319,20 @@ class GAP:
         return self.best_fitness
 
 @print_timing
-def run_30_times_chc(filename):
-    gap = GAP(filename, 50, 50, 10)
+def run_30_times_chc(filename,n,g):
+    gap = GAP(filename, n, g)
     total = 0.0
     for i in range(30):
         total += gap.run_chc()
-    print "mean of 30 runs"
-    print "mean best fitness %f" %(total / 30.0)
-    print "genotype %s" %gap.best_solution
-    print "best fitness: %i" %gap.best_fitness
-    print "feasable: %s" %gap.feasible(gap.best_solution)
-    print "evaluations to best %i" %gap.evaluations_to_best
+    file = open(filename+".out", "a")
+    output = "mean of 30 runs with pop %i and  generation of %i\n" %(n, g)
+    output += "mean best fitness %f\n" %(total / 30.0)
+    output += "genotype %s\n" %gap.best_solution
+    output += "best fitness: %i\n" %gap.best_fitness
+    output += "feasable: %s\n" %gap.feasible(gap.best_solution)
+    output += "evaluations to best %i\n" %gap.evaluations_to_best
+    file.write(output)
+    file.close()
 
 @print_timing
 def run_30_times_ga(filename):
@@ -358,14 +361,32 @@ def run_10_times(filename):
 
 
 
+N_values = []
+N_values.append(10)
+N_values.append(50)
+N_values.append(100)
+N_values.append(500)
+generation_values = []
+generation_values.append(10)
+generation_values.append(50)
+generation_values.append(100)
+generation_values.append(500)
+
+
+for n in N_values:
+    for g in generation_values:
+        thread.start_new_thread(run_30_times_chc,("data/D20-100.dat",n,g))
+
+data = input("waiting")
+
 #run_30_times_ga('data/D3-15.dat')         # finding rand 46 iteration  , with repair 48
 #run_30_times_chc('data/D3-15.dat')         # finding rand 46 iteration  , with repair 48
 
 #run_30_times_ga('data/D20-100.dat')       # finding rand 495 iteration , with repair 336
 #run_30_times_chc('data/D20-100.dat')       # finding rand 495 iteration , with repair 336
 
-run_30_times_ga('data/C10-100.dat')       # finding rand never         , with repair 999
-run_30_times_chc('data/C10-100.dat')       # finding rand never         , with repair 999
+#run_30_times_ga('data/C10-100.dat')       # finding rand never         , with repair 999
+#run_30_times_chc('data/C10-100.dat')       # finding rand never         , with repair 999
 
 
 #run_30_times('data/C30-500.dat')       # finding rand never         , with repair 999
