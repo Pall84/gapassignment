@@ -99,20 +99,11 @@ class GAP:
         for m in range(N):
             solution = None
 
-            for i in range(1000):
-                solution = self.__random_solution()
+            for j in range(1000):
+                solution = self.__random_solution_constraints()
                 if self.feasible(solution):
-                    self.random_lookups = i
+                    self.random_lookups = j
                     break
-                else:
-                    solution = None
-
-            if not solution:
-                for j in range(1000):
-                    solution = self.__random_solution_constraints()
-                    if self.feasible(solution):
-                        self.random_lookups = i+j
-                        break
 
             solutions.append(solution)
         return solutions
@@ -324,6 +315,11 @@ def run_30_times_chc(filename,n,g):
     total = 0.0
     for i in range(30):
         total += gap.run_chc()
+        if i == 10:
+            print "%s pop: %i gen: %i 33 prosent done" %(filename, n, g)
+        elif i == 20:
+            print "%s 66 prosent done" % filename
+
     file = open(filename+".out", "a")
     output = "mean of 30 runs with pop %i and  generation of %i\n" %(n, g)
     output += "mean best fitness %f\n" %(total / 30.0)
@@ -333,6 +329,7 @@ def run_30_times_chc(filename,n,g):
     output += "evaluations to best %i\n" %gap.evaluations_to_best
     file.write(output)
     file.close()
+    print "%s done" % filename
 
 @print_timing
 def run_30_times_ga(filename):
@@ -376,6 +373,10 @@ generation_values.append(500)
 for n in N_values:
     for g in generation_values:
         thread.start_new_thread(run_30_times_chc,("data/D20-100.dat",n,g))
+        #thread.start_new_thread(run_30_times_chc,("data/C10-100.dat",n,g))
+        #thread.start_new_thread(run_30_times_chc,("data/C30-500.dat",n,g))
+        #thread.start_new_thread(run_30_times_chc,("data/E10-100.dat",n,g))
+        #thread.start_new_thread(run_30_times_chc,("data/E50-1000.dat",n,g))
 
 data = input("waiting")
 
