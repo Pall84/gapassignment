@@ -1,15 +1,13 @@
 __author__ = 'Palli'
-from random import randrange, random
+from random import randrange
 from sys import maxint
-import time
-from copy import copy
-import thread
 
 def mysplit(s, delim=None):
     """ returns string split without delim
         taken from http://stackoverflow.com/questions/2197451/why-are-empty-strings-returned-in-split-results
     """
     return [x for x in s.split(delim) if x]
+
 
 class GAP:
     def __init__(self, filename):
@@ -67,22 +65,22 @@ class GAP:
         return genome
 
     def __random_population_repair(self):
-        genome = []
-        agents_capacity = self.agents_max_capacity[:]
-        for task in range(self.number_of_tasks):
-            j = 0
-            while j  < 500:
-                agent = randrange(self.number_of_agents)
-                resource = self.resource_matrix[agent][task]
-                if resource <= agents_capacity[agent]:
-                    genome.append(agent)
-                    agents_capacity[agent] -= resource
-                    break
+            genome = []
+            agents_capacity = self.agents_max_capacity[:]
+            for task in range(self.number_of_tasks):
+                j = 0
+                while j  < 500:
+                    agent = randrange(self.number_of_agents)
+                    resource = self.resource_matrix[agent][task]
+                    if resource <= agents_capacity[agent]:
+                        genome.append(agent)
+                        agents_capacity[agent] -= resource
+                        break
+                    else:
+                        j += 1
                 else:
-                    j += 1
-            else:
-                return None
-        return genome
+                    return None
+            return genome
 
     def __random_populations(self, N):
         pop = []
@@ -96,65 +94,6 @@ class GAP:
             genome = self.__random_population()
             pop.append(genome)
         return pop
-
-    def fitness(self, genome):
-        if not self.__feasible(genome):
-            return maxint
-        else:
-            fitness = 0
-            for task in range(len(genome)):
-                agent = genome[task]
-                cost = self.cost_matrix[agent][task]
-                fitness += cost
-            return fitness
-
-    def __fitness_compare(self,a, b):
-        fitness_a = self.fitness(a)
-        fitness_b = self.fitness(b)
-        if fitness_a > fitness_b:
-            return 1
-        elif fitness_a == fitness_b:
-            return 0
-        else:
-            return -1
-
-    def __feasible(self, genome):
-        if not genome:
-            return False
-
-        agents_capacity = self.agents_max_capacity[:]
-        for task in range(len(genome)):
-            agent = genome[task]
-            resource = self.resource_matrix[agent][task]
-            if resource <= agents_capacity[agent]:
-                agents_capacity[agent] -= resource
-            else:
-                return False
-        return True
-
-    def __evaluate(self, genome):
-        fitness = self.fitness(genome)
-        if fitness < self.best_fitness:
-            self.best_fitness = fitness
-            self.best_genome = genome
-        return fitness
-
-
-
-    def __find_best(self, pop):
-        """ find best member in population. """
-        best_member = None
-        best_fitness = maxint
-
-        # check every member in population.
-        for member in pop:
-            fitness = self.fitness(member)
-            if fitness < best_fitness:
-                best_member = member
-                best_fitness = fitness
-
-        # return reference to best member.
-        return best_member
 
     def __random_parents(self, P):
         random_parent = randrange(len(P))
@@ -187,6 +126,47 @@ class GAP:
                 c2.append(p1_p2[0][gene])
         return c1, c2
 
+    def __evaluate(self, genome):
+        fitness = self.fitness(genome)
+        if fitness < self.best_fitness:
+            self.best_fitness = fitness
+            self.best_genome = genome
+        return fitness
+
+    def fitness(self, genome):
+        if not self.__feasible(genome):
+            return maxint
+        else:
+            fitness = 0
+            for task in range(len(genome)):
+                agent = genome[task]
+                cost = self.cost_matrix[agent][task]
+                fitness += cost
+            return fitness
+
+    def __fitness_compare(self,a, b):
+        fitness_a = self.fitness(a)
+        fitness_b = self.fitness(b)
+        if fitness_a > fitness_b:
+            return 1
+        elif fitness_a == fitness_b:
+            return 0
+        else:
+            return -1
+
+    def __feasible(self, genome):
+        if not genome:
+            return False
+        agents_capacity = self.agents_max_capacity[:]
+        for task in range(len(genome)):
+            agent = genome[task]
+            resource = self.resource_matrix[agent][task]
+            if resource <= agents_capacity[agent]:
+                agents_capacity[agent] -= resource
+            else:
+                return False
+        return True
+
     def __diverge(self, P):
         best_genome = self.__find_best(P)
 
@@ -200,6 +180,16 @@ class GAP:
             P_new.append(genome)
         return P_new
 
+    def __find_best(self, P):
+        best_fitness = maxint
+        best_genome = P[randrange(len(P))]
+        for genome in P:
+            fitness = self.fitness(genome)
+            if fitness < best_fitness:
+                best_fitness = fitness
+                best_genome = genome
+        return best_genome
+
     def __replace(self, N, P, C):
         P_C = P+C
         P_C.sort(self.__fitness_compare)
@@ -212,11 +202,16 @@ class GAP:
         L = self.number_of_tasks
         N = Np
         P = self.__random_populations(N)
+        if len(P) <= 1:
+            print "done"
         Thresh = L/4
         for generation in range(generations):
             C = []
             P_copy = P[:]
             for i in range(N/2):
+                if len(P_copy) <= 1:
+                    print "done"
+                #print len(P_copy)
                 p1_p2 = self.__random_parents(P_copy)
                 if self.__distance(p1_p2) >= Thresh:
                     c1_c2 = self.__hux(p1_p2)
@@ -229,25 +224,36 @@ class GAP:
                 L -= 1
                 if L <= 0:
                     P = self.__diverge(P)
+                    if len(P) < N:
+                        print "done"
                     L = self.number_of_tasks
             else:
                 P = self.__replace(N, P, C)
-
+                if len(P) < N:
+                    print "done"
 
 def run_30_times(filename, n, g):
-    gap = GAP(filename)
+    gap = GAP("data/"+filename)
     mean_fitness = 0
     best_fitness = maxint
     best_genome = None
     for i in range(30):
         gap.evolve(n, g)
         mean_fitness += gap.best_fitness
-        fitness = gap.best_fitness
-        if fitness < best_fitness:
-            best_fitness = fitness
-            best_genome = gap.best_genome
-    print mean_fitness/30.0
-    print best_fitness
-    print best_genome
 
-run_30_times("data/C10-100.dat", 10, 10)
+    msg = "%s\n%s : %s\n%s\n" %(filename, n, g, mean_fitness/30.0)
+    file = open("data/"+filename+".out", "a")
+    file.write(msg)
+    file.close()
+
+
+N = []
+N.append(10)
+N.append(50)
+N.append(100)
+N.append(500)
+N.append(1000)
+
+for n in N:
+    for g in N:
+        run_30_times("C10-100.dat", n, g)
