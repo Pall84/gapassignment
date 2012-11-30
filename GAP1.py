@@ -253,6 +253,8 @@ N.append(50)
 N.append(100)
 N.append(500)
 N.append(1000)
+N.append(5000)
+N.append(10000)
 
 for n in N:
     for g in N:
