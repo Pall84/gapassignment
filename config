@@ -1,0 +1,21 @@
+# config file for CHC
+# comments are done with # at start of line
+# config is following
+#
+# x input output N G R
+#
+# where x is number of runs we want to run for test purpose
+# where input is url of data file we want to load data from.
+# where out is url of data file we want to write report to.
+# where N is size of population
+# where G is number of generation we want to run
+# where R is mutation rate for diverging function.
+# x and filename cant be empty but N, G and R can be and then get their default value of 50 50 35
+#
+# example
+# 10 data/D3-15.dat data/D3-15.out 10 10 50
+
+#30 D3-15.dat data/D3-15.out 50 50 15
+30 D3-15.dat D3-15.out 50 50 35   # best
+#30 D3-15.dat data/D3-15.out 50 50 55
+#30 D3-15.dat data/D3-15.out 50 50 75
